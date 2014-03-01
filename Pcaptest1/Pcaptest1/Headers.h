@@ -74,5 +74,5 @@ bool MAC_equal(MAC src1,MAC src2);
 void MAC_toString(MAC mac,char * str);
 void send_raw_package(pcap_t * fp,u_char * packet,int packet_size,int times);
 void HostScan(pcap_t * fp,unsigned int srcIP,unsigned int dstIP,MAC srcMAC);
-
+void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC);
 #endif

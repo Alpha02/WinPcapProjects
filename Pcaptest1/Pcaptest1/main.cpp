@@ -149,7 +149,9 @@ int main(){
 	unsigned int package_size=sizeof(MACHeader)+sizeof(IPHeader)+sizeof(ICMPHeader);
 	char * pData=new char[package_size];
 	pcap_t * fp=openDevice(alldevs,package_size);
-	HostScan(fp,getIP("10.2.124.96"),temp_ip,getMAC("78-45-C4-B8-12-CE"));
+	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("1c:b0:94:bc:0c:f1"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
+	ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("78-45-C4-B8-12-CE"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
+	//HostScan(fp,getIP("10.2.124.96"),temp_ip,getMAC("78-45-C4-B8-12-CE"));
 	//SetFilter(fp,"arp and ether dst 78:45:C4:B8:12:CE");
 	
 	/*
@@ -159,6 +161,6 @@ int main(){
 		
 	}
 	*/
-	while(1){package_Receive(fp);}
+	//while(1){package_Receive(fp);}
 	return 0;
 }
