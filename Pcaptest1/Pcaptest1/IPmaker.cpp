@@ -21,5 +21,5 @@ void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,un
 	pIPHeader->checksum=CheckSum((USHORT*)pBuf,sizeof(IPHeader));
 }
 void IP_toString(unsigned long IP,char * str){
-	sprintf(str,"%d.%d.%d.%d",IP>>24,(IP>>16)&0x000000ff,(IP>>8)&0x000000ff,(IP)&0x000000ff);
+	sprintf(str,"%d.%d.%d.%d",(IP)&0x000000ff,(IP>>8)&0x000000ff,(IP>>16)&0x000000ff,IP>>24);
 }

