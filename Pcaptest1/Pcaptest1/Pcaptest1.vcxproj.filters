@@ -30,6 +30,12 @@
     <ClCompile Include="MACmaker.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="HostScan.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ARPmaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers.h">

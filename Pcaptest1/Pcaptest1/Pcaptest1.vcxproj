@@ -76,7 +76,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ARPmaker.cpp" />
     <ClCompile Include="checksum.cpp" />
+    <ClCompile Include="HostScan.cpp" />
     <ClCompile Include="ICMPmaker.cpp" />
     <ClCompile Include="IPmaker.cpp" />
     <ClCompile Include="MACmaker.cpp" />

@@ -116,19 +116,22 @@ pcap_if_t * find_interfaces(){
 	}
 	return alldevs;
 }
-void send_raw_package(pcap_if_t * device,u_char * packet,int packet_size,int times=1){
-		pcap_t *fp;
+pcap_t * openDevice(pcap_if_t * device,unsigned int package_size){
+	char errbuf[PCAP_ERRBUF_SIZE];
+	pcap_t * fp=pcap_open(device->name,65535,PCAP_OPENFLAG_PROMISCUOUS,1000,NULL,errbuf);
+	if(fp == NULL)
+	{
+		fprintf(stderr,"\nUnable to open the adapter. %s is not supported by WinPcap\n", device->name);
+		
+	}
+	return fp;
+}
+void send_raw_package(pcap_t * fp,u_char * packet,int packet_size,int times=1){
+
 		char errbuf[PCAP_ERRBUF_SIZE];
-		/* Open the output device */
-		fp=pcap_open(device->name,packet_size,PCAP_OPENFLAG_PROMISCUOUS,1000,NULL,errbuf);
-		if(fp == NULL)
-		{
-			fprintf(stderr,"\nUnable to open the adapter. %s is not supported by WinPcap\n", device->name);
-			return;
-		}
 		/* Send down the packet */
 		while(times--){
-			rand_source_ip_mac(packet);
+			//rand_source_ip_mac(packet);
 			if (pcap_sendpacket(fp, packet, packet_size ) != 0)
 			{
 				fprintf(stderr,"\nError sending the packet: %s\n", pcap_geterr(fp));
@@ -139,10 +142,23 @@ void send_raw_package(pcap_if_t * device,u_char * packet,int packet_size,int tim
 }
 
 int main(){
-
 	srand((unsigned)time(NULL)); 
 	pcap_if_t * alldevs=find_interfaces();
-	char * buff=ICMP_MakePackage(getIP(ARP_ip(0)),getIP("10.2.124.1"),getMAC(ARP_mac(0)),getMAC("D8:49:0B:B8:4a:1b"),0);
-	send_raw_package(alldevs,(u_char *)buff,sizeof(MACHeader)+sizeof(IPHeader)+sizeof(ICMPHeader),10);
+	//char * buff=ICMP_MakePackage(getIP(ARP_ip(0)),getIP("222.30.32.11"),getMAC(ARP_mac(0)),getMAC("D8:49:0B:B8:4a:1b"),0);
+	unsigned long temp_ip=getIP("10.2.124.1");
+	unsigned int package_size=sizeof(MACHeader)+sizeof(IPHeader)+sizeof(ICMPHeader);
+	char * pData=new char[package_size];
+	pcap_t * fp=openDevice(alldevs,package_size);
+	HostScan(fp,getIP("10.2.124.96"),temp_ip,getMAC("78-45-C4-B8-12-CE"));
+	//SetFilter(fp,"arp and ether dst 78:45:C4:B8:12:CE");
+	
+	/*
+	for(int i=0;i<255;i++){
+		ARP_MakePackage(pData,ARP_OP_REQUEST,getMAC("78-45-C4-B8-12-CE"),getMAC("ff-ff-ff-ff-ff-ff"),getIP("10.2.124.60"),temp_ip+(i<<24));
+		send_raw_package(fp,(u_char *)buff,package_size,1);
+		
+	}
+	*/
+	while(1){package_Receive(fp);}
 	return 0;
 }
