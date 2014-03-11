@@ -62,4 +62,5 @@ void HostScan(pcap_t * fp,HostManager & manager,unsigned int srcIP,unsigned int 
 	}
 	int a=manager.getGateWay();
 	manager.lookClearDHCP();
+	printf("%d hosts found\n",manager.host_number);
 }

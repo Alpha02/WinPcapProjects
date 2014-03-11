@@ -8,6 +8,7 @@
 #include <pcap.h>
 #include "stdio.h"
 #include "windows.h"
+#include "packageBaker.h"
 extern char *myIP;
 extern char *myMAC;
 extern char *myPhoneMAC;
@@ -55,6 +56,26 @@ struct ARPHeader{
 	unsigned long IP_target;
 
 };
+struct TCPHeader{
+	USHORT sourcePort;					//16位源端口
+	USHORT destPort;					//16位目的端口
+	unsigned int seq_number;				//32位序列号
+	unsigned int ack_number;				//32位确认号
+	unsigned char lenres;			//4位首部长度/6位保留字
+	unsigned char flag;				//6位标志位
+	USHORT window;						//16位窗口大小
+	USHORT checksum;						//16位校验和
+	USHORT urgent_pointer;						//16位紧急数据偏移量
+};
+struct	TCPpsdHeader								//定义TCP伪首部
+{
+	unsigned long srcAddr;			//源地址
+	unsigned long dstAddr;			//目的地址
+	char mbz;
+	char ptcl;						//协议类型
+	unsigned short tcplen;			//TCP长度
+};
+
 class Host{
 public:
 	MAC mac;
@@ -75,9 +96,10 @@ char * package_Receive(pcap_t * fp,pcap_pkthdr &header);
 void Package_Change_srcMAC(unsigned char * pBuf,MAC newMAC);
 void Package_Change_srcIP(unsigned char * pBuf,unsigned long newIP);
 void MAC_MakePackage(char * pBuf,MAC srcMAC,MAC dstMAC,u_short protocol_type);
-void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id);
+void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type,USHORT total_len);
 char * ICMP_MakePackage(unsigned long srcIP,unsigned long dstIP,MAC srcMAC,MAC dstMAC,u_short id);
 void ARP_MakePackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP);
+void TCP_MakePackage(Package * pack,USHORT srcPort,USHORT destPort,u_int seq_num);
 USHORT CheckSum(USHORT * pUShort,int size);
 void SetFilter(pcap_t * fp,char * str);
 bool MAC_equal(MAC src1,MAC src2);
@@ -171,9 +193,6 @@ public:
 		SetColor(0);
 	}
 };
-
-
-
 
 void HostScan(pcap_t * fp,HostManager & manager,unsigned int srcIP,unsigned int dstIP,MAC srcMAC);
 void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC);

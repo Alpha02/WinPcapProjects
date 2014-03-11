@@ -2,7 +2,7 @@
 void Package_Change_srcIP(unsigned char * pBuf,unsigned long newIP){
 	((IPHeader*)(pBuf+sizeof(MACHeader)))->sourceIP=newIP;
 }
-void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id){
+void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type=IPPROTO_ICMP,USHORT total_len=20){
 	memset(pBuf,0,sizeof(IPHeader));
 	IPHeader * pIPHeader=(IPHeader *)pBuf;
 	int nVersion=4;
@@ -10,11 +10,11 @@ void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,un
 	unsigned long destIP=dstIP;
 	pIPHeader->ver_hlen=(nVersion<<4)|nHeadSize;
 	pIPHeader->tos=0;
-	pIPHeader->total_len=htons(package_size);
-	pIPHeader->ident=htons(1234);
-	pIPHeader->frag_and_flags=0;
-	pIPHeader->ttl=255;
-	pIPHeader->proto=IPPROTO_ICMP;
+	pIPHeader->total_len=htons(total_len);
+	pIPHeader->ident=htons(id);
+	pIPHeader->frag_and_flags=0x0040;
+	pIPHeader->ttl=64;
+	pIPHeader->proto=protocol_type;
 	pIPHeader->checksum=0;
 	pIPHeader->sourceIP=srcIP;
 	pIPHeader->destIP=destIP;

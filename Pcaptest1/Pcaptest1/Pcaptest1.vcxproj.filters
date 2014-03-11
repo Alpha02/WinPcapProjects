@@ -36,10 +36,19 @@
     <ClCompile Include="ARPmaker.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="TCPmaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="packageBaker.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="packageBaker.h">
+      <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

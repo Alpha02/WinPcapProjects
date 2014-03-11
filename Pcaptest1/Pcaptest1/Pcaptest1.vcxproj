@@ -83,9 +83,12 @@
     <ClCompile Include="IPmaker.cpp" />
     <ClCompile Include="MACmaker.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="packageBaker.cpp" />
+    <ClCompile Include="TCPmaker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers.h" />
+    <ClInclude Include="packageBaker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
