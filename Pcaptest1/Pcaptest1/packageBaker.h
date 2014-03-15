@@ -1,27 +1,38 @@
 class Package{
 private:
-
-
-	int section_number;
+	unsigned int section_number;
 	int section_startIndex[11];
 public:
-	int length;
-	char * data;
-	Package(){
+	unsigned int length;
+	u_char * data;
+	void init(){
 		data=NULL;
 		length=0;
 		section_number=0;
 	}
-	void create(int len){
+	void create(unsigned int len){
+		if(length>0){
+			delete [length] data;
+		}
 		length=len;
-		data=new char[length];
+		data=new u_char[length];
 		section_number=0;
 		section_startIndex[0]=0;
 		for(unsigned int i=1;i<11;i++){
 			section_startIndex[i]=len;
 		}
 	}
-	char * getSection(unsigned int index){
+	Package(){
+		init();
+	}
+	Package(unsigned int len){
+		init();
+		create(len);
+	}
+	~Package(){
+	    delete [length] data;
+	}
+	u_char * getSection(unsigned int index){
 		if(index<section_number){
 			return data+section_startIndex[index];
 		}
@@ -33,15 +44,15 @@ public:
 		}
 		return -1;
 	}
-	char * fillSection(unsigned int index,int len){
+	u_char * fillSection(unsigned int index,int len){
 		if(index>=section_number)section_number=index+1;
 		section_startIndex[index+1]=section_startIndex[index]+len;
 		return getSection(index);
 	}
-	char * addSection(int len){
+	u_char * addSection(int len){
 		if(section_number>=10)return NULL;
 		unsigned int index=section_number;
 		section_number++;
-		fillSection(index,len);
+		return fillSection(index,len);
 	}
 };

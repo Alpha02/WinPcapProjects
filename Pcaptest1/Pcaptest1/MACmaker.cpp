@@ -9,7 +9,8 @@ void Package_Change_srcMAC(unsigned char * pBuf,MAC newMAC){
 	MAC_copy(newMAC,c);
 }
 
-void MAC_MakePackage(char * pBuf,MAC srcMAC,MAC dstMAC,u_short protocol_type){
+void MAC_MakePackage(Package & pack,MAC srcMAC,MAC dstMAC,u_short protocol_type){
+	u_char * pBuf=pack.addSection(sizeof(MACHeader));
 	for(int i=0;i<6;i++){
 		pBuf[i]=dstMAC.addr[i];
 	}

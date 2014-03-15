@@ -1,5 +1,6 @@
 #ifndef HEADERS_H
 #define HEADERS_H
+#define _CRT_SECURE_NO_WARNINGS
 #pragma comment(lib,"ws2_32.lib")
 #pragma pack(push,1)
 //以1字节方式字节对齐。防止它改变头部结构
@@ -95,11 +96,12 @@ void MAC_copy(MAC src,MAC dst);
 char * package_Receive(pcap_t * fp,pcap_pkthdr &header);
 void Package_Change_srcMAC(unsigned char * pBuf,MAC newMAC);
 void Package_Change_srcIP(unsigned char * pBuf,unsigned long newIP);
-void MAC_MakePackage(char * pBuf,MAC srcMAC,MAC dstMAC,u_short protocol_type);
-void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type,USHORT total_len);
-char * ICMP_MakePackage(unsigned long srcIP,unsigned long dstIP,MAC srcMAC,MAC dstMAC,u_short id);
-void ARP_MakePackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP);
-void TCP_MakePackage(Package * pack,USHORT srcPort,USHORT destPort,u_int seq_num);
+void MAC_MakePackage(Package & pack,MAC srcMAC,MAC dstMAC,u_short protocol_type);
+void IP_MakePackage(Package & pack,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type=IPPROTO_ICMP,USHORT total_len=20);
+void ICMP_MakePackage(Package & pack,unsigned long srcIP,unsigned long dstIP,MAC srcMAC,MAC dstMAC,u_short id);
+void ARP_MakePackage(Package & pack,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP);
+void TCP_MakePackage(Package & pack,USHORT srcPort,USHORT destPort,u_int seq_num);
+void TCP_nextPort(Package & pack);
 USHORT CheckSum(USHORT * pUShort,int size);
 void SetFilter(pcap_t * fp,char * str);
 bool MAC_equal(MAC src1,MAC src2);
@@ -188,12 +190,16 @@ public:
 		SetColor(2);
 		printf("%s",hint);
 		int selected_id=-1;
-		scanf("%d",&selected_id);
+		scanf_s("%d",&selected_id);
 		return selected_id;
 		SetColor(0);
 	}
 };
 
 void HostScan(pcap_t * fp,HostManager & manager,unsigned int srcIP,unsigned int dstIP,MAC srcMAC);
-void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC);
+void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC,int times);
+
+
+extern unsigned int  SIZE_PACK_ICMP;
+extern unsigned int SIZE_PACK_ARP;
 #endif

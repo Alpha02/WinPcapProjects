@@ -2,8 +2,8 @@
 void Package_Change_srcIP(unsigned char * pBuf,unsigned long newIP){
 	((IPHeader*)(pBuf+sizeof(MACHeader)))->sourceIP=newIP;
 }
-void IP_MakePackage(char * pBuf,unsigned int package_size,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type=IPPROTO_ICMP,USHORT total_len=20){
-	memset(pBuf,0,sizeof(IPHeader));
+void IP_MakePackage(Package & pack,unsigned long srcIP,unsigned long dstIP,u_short id,char protocol_type,USHORT total_len){
+	u_char * pBuf=pack.addSection(sizeof(IPHeader));
 	IPHeader * pIPHeader=(IPHeader *)pBuf;
 	int nVersion=4;
 	int nHeadSize=sizeof(IPHeader)/4;

